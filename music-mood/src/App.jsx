@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [mood, setMood] = useState("");
+  const [playlists, setPlaylists] = useState([]);
+  const [accessToken, setAccessToken] = useState("");
+
+  // Fetch access token from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("access_token");
+    if (token) {
+      setAccessToken(token);
+    }
+  }, []);
+
+  // Fetch playlists from Spotify based on mood
+  const fetchPlaylists = (mood) => {
+    axios
+      .get(`https://api.spotify.com/v1/search`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: { q: mood, type: "playlist" },
+      })
+      .then((response) => {
+        setPlaylists(response.data.playlists.items);
+      })
+      .catch((error) => console.log(error));
+  };
 
   return (
-    <>
+    <div>
+      <h1>Mood-based Music App</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <input
+          type="text"
+          value={mood}
+          onChange={(e) => setMood(e.target.value)}
+          placeholder="Enter mood (e.g., happy, sad)"
+        />
+        <button onClick={() => fetchPlaylists(mood)}>Get Playlists</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+      <div>
+        {playlists.map((playlist) => (
+          <div key={playlist.id}>
+            <h3>{playlist.name}</h3>
+            <img src={playlist.images[0]?.url} alt={playlist.name} />
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default App
+export default App;
