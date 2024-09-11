@@ -15,7 +15,7 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 // Login Route
-app.get("/login", (req, res) => {
+app.get("/", (req, res) => {
   const scopes = [
     "user-read-private",
     "user-read-email",
